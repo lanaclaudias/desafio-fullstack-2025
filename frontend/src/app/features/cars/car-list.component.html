@@ -1,0 +1,77 @@
+<div class="app">
+
+  <aside class="sidebar" [class.open]="menuOpen">
+    <div class="sidebar-header">
+
+      <img *ngIf="!menuOpen" src="/logo.jpg" alt="Logo" class="logo logo-icon" />
+
+      <img *ngIf="menuOpen" src="/logo-1.png" alt="Logo" class="logo logo-full" />
+    </div>
+
+
+    <div *ngIf="menuOpen" class="sidebar-content">
+      <p class="menu-title">MENU</p>
+      <ul class="menu-list">
+        <li><span class="emoji">🏠</span> Home</li>
+     
+      </ul>
+    </div>
+  </aside>
+
+
+  <button class="toggle-btn" (click)="menuOpen=!menuOpen">
+    {{ menuOpen ? '❮' : '❯' }}
+  </button>
+
+  <main class="content">
+    <div class="toast" *ngIf="message" [class.success]="message.type==='success'" [class.error]="message.type==='error'">
+      {{message.text}}
+    </div>
+
+    <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+      <button class="btn add" (click)="openForm()">+ Adicionar veículo</button>
+    </div>
+
+    <div class="grid">
+      <div *ngIf="!cars || cars.length === 0" class="empty-state">
+        <p>Nenhum veículo encontrado</p>
+      </div>
+      <div *ngFor="let car of cars" class="card-car">
+        <div class="card-image">
+          <button class="nav left" (click)="setVisibleIdx(car.id, (visibleIdx[car.id] || 0) - 1)">‹</button>
+          <img [src]="getImages(car)[visibleIdx[car.id] || 0]" [alt]="car.model" />
+          <button class="nav right" (click)="setVisibleIdx(car.id, (visibleIdx[car.id] || 0) + 1)">›</button>
+
+          <div class="thumbs">
+            <img *ngFor="let t of getImages(car).slice(0,3); let i = index" 
+                 class="thumb" [src]="t" 
+                 (click)="setVisibleIdx(car.id, i)" />
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="card-header">
+            <h3 class="car-title">{{car.model}}</h3>
+            <span class="car-meta">{{car.year}} {{car.mileage}} Km</span>
+          </div>
+          <div class="car-version">{{car.version}}</div>
+          <div class="car-location">
+            <span class="location-text">⚑ {{car.store?.name}}</span>
+          </div>
+          <div class="price">R${{car.price | number}}</div>
+        </div>
+
+        <div class="card-foot">
+          <button class="icon-btn" (click)="openForm(car.id)">⚙</button>
+          <button class="btn buy">Comprar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <app-car-form *ngIf="showForm" [id]="editId" 
+    (onClose)="showForm=false" 
+    (onSaved)="onSaved()" 
+    (onMessage)="onMessage($event)">
+  </app-car-form>
+</div>

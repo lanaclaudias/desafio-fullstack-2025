@@ -1,0 +1,330 @@
+.app {
+  display: flex;
+  min-height: 100vh;
+  background: #e3ebe5;
+  font-family: "Inter", sans-serif;
+}
+
+
+.content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  position: relative;
+  margin-left: 70px; 
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar.open ~ .content {
+  margin-left: 250px; 
+}
+
+
+.toast {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  background: #eee;
+  color: #333;
+  z-index: 100;
+}
+
+.toast.success {
+  background: #d9f4e1;
+  color: #065f46;
+}
+
+.toast.error {
+  background: #fce7e7;
+  color: #991b1b;
+}
+
+
+.btn {
+  border: none;
+  padding: 10px 16px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn.add {
+  background: #006d4d;
+  color: #fff;
+}
+
+.btn.add:hover {
+  background: #005a3e;
+}
+
+.btn.buy {
+  background: #006d4d;
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 14px;
+  flex: 1;
+}
+
+.btn.buy:hover {
+  background: #005a3e;
+}
+
+.icon-btn {
+  border: none;
+  background: #f6f6f6;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.icon-btn:hover {
+  background: #e2e2e2;
+}
+
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.empty-state {
+  text-align: center;
+  color: #555;
+  grid-column: 1 / -1;
+}
+
+
+.card-car {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.15s ease;
+  padding: 0;
+}
+
+.card-car:hover {
+  transform: translateY(-3px);
+}
+
+.card-image {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-image .nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.card-image .nav.left {
+  left: 8px;
+}
+
+.card-image .nav.right {
+  right: 8px;
+}
+
+.thumbs {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+
+.thumb {
+  width: 40px;
+  height: 30px;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  opacity: 0.7;
+}
+
+.thumb:hover,
+.thumb.active {
+  border-color: #006d4d;
+  opacity: 1;
+}
+
+.card-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.car-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.car-meta {
+  font-size: 14px;
+  color: #666;
+}
+
+.car-version {
+  font-size: 14px;
+  color: #4a4a8a;
+}
+
+.car-location {
+  font-size: 14px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: bold;
+  margin-top: 6px;
+}
+
+.card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-top: 1px solid #eee;
+}
+
+
+.sidebar {
+  width: 70px;
+  background: #fff;
+  height: 100vh;
+  transition: width 0.3s ease;
+  overflow: hidden;
+  border-right: 1px solid #eee;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.sidebar.open {
+  width: 250px;
+}
+
+.sidebar-header {
+  padding: 20px;
+  text-align: center;
+}
+
+.logo-icon {
+  width: 40px;
+}
+
+.logo-full {
+  width: 140px;
+}
+
+.sidebar-content {
+  padding: 10px 20px;
+}
+
+.menu-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #777;
+  margin: 10px 0;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-list li {
+  font-size: 16px;
+  padding: 10px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.menu-list li:hover {
+  background: #f3f3f3;
+  padding-left: 5px;
+}
+
+.menu-list li.active {
+  background: #f1f6f3;
+  font-weight: 600;
+  box-shadow: inset 4px 0 0 #006d4d;
+}
+
+.emoji {
+  font-size: 18px;
+}
+
+
+.toggle-btn {
+  position: fixed;
+  top: 20px;
+  left: 70px;
+  background: #ffffff;
+  color: #000000;
+
+
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  transition: left 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.toggle-btn:hover {
+  background: #005a3e;
+}
+
+.sidebar.open + .toggle-btn {
+  left: 250px;
+}
