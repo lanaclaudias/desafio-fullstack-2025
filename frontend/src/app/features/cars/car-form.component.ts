@@ -1,6 +1,5 @@
-
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CarsService } from './cars.service';
 
@@ -15,189 +14,228 @@ export class CarFormComponent implements OnInit {
   @Input() id: string | null = null;
   @Output() onClose = new EventEmitter<void>();
   @Output() onSaved = new EventEmitter<void>();
-  @Output() onMessage = new EventEmitter<{type:'success'|'error', text:string}>();
+  @Output() onMessage = new EventEmitter<any>();
 
-  form: any = { model: '', version: '', year: '', mileage: '', price: '', description: '', brandId: '', storeId: '', images: [] };
+  @ViewChild('fileInput', { static: false }) fileInput?: ElementRef<HTMLInputElement>;
+
   brands: any[] = [];
-  stores: any[] = [];
   allStores: any[] = [];
-  brandsLoaded = false;
-  storesLoaded = false;
+  stores: any[] = [];
+  form: any = {
+    brandId: null,
+    storeId: null,
+    model: '',
+    version: '',
+    year: '',
+    mileage: null,
+    price: null,
+    description: '',
+    images: []
+  };
   loading = false;
-  message: any = null;
+  message = '';
   missingFields: string[] = [];
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   constructor(private svc: CarsService) {}
 
-  ngOnInit() {
-    this.svc.getBrands().subscribe(r=> {
-      this.brands = (r.data || r).map((b:any)=> ({ ...b, stores: b.stores || [] }));
-      this.brandsLoaded = true;
-      this.maybeLoadCarAfterData();
-    }, err => { console.debug('Falha ao carregar brands', err); this.brandsLoaded = true; this.maybeLoadCarAfterData(); });
-
-    this.svc.getStores().subscribe(r => {
-      this.allStores = r.data || r || [];
-      this.storesLoaded = true;
-      this.maybeLoadCarAfterData();
-    }, err => { console.debug('Falha ao carregar stores (getStores)', err); this.storesLoaded = true; this.maybeLoadCarAfterData(); });
-  }
-
-  maybeLoadCarAfterData() {
-    if (!this.id) return;
-    if (!this.brandsLoaded || !this.storesLoaded) return;
-
-    this.svc.getCar(Number(this.id)).subscribe(r=> {
-      const car = r.data || r;
-      this.form = { ...this.form, ...car };
-
-      try {
-        if (car.images) {
-          if (typeof car.images === 'string') {
-            const parsed = JSON.parse(car.images);
-            this.form.images = Array.isArray(parsed) ? parsed : [car.images];
-          } else if (Array.isArray(car.images)) {
-            this.form.images = car.images;
-          } else {
-            this.form.images = [String(car.images)];
-          }
-        } else {
-          this.form.images = [];
-        }
-      } catch (e) {
-        this.form.images = typeof car.images === 'string' ? [car.images] : (car.images || []);
+  ngOnInit(): void {
+    this.svc.getBrands().subscribe({
+      next: (b: any[]) => {
+        this.brands = b || [];
+        console.debug('getBrands ->', this.brands);
+        this.onBrandChange();
+      },
+      error: (err) => {
+        console.error('getBrands error', err);
+        this.brands = [];
       }
-
-      if (car.store) {
-        this.form.storeId = car.store.id;
-        const brandId = car.store.brand && car.store.brand.id ? car.store.brand.id : (typeof car.store.brand === 'string' || typeof car.store.brand === 'number' ? car.store.brand : null);
-        this.form.brandId = brandId ?? this.form.brandId;
-        this.filterStoresByBrandId(this.form.brandId);
-      }
-    }, err => { console.debug('Falha ao carregar car', err); });
-  }
-
-  loadStoresByBrand(brandName: string) {
-    if (!brandName) { this.stores = []; return; }
-
-    const matched = this.allStores.filter(s => s && s.brand && (s.brand.name === brandName || s.brand === brandName || s.brand?.id == this.form.brandId));
-    if (matched.length) { this.stores = matched; return; }
-    this.svc.getStoresByBrand(brandName).subscribe(r=> this.stores = r.data || r, err => { console.debug('fallback getStoresByBrand failed', err); this.stores = []; });
-  }
-
-  onBrandChange() {
-    const brand = this.brands.find(b=> b.id == this.form.brandId);
-    this.form.storeId = '';
-    this.filterStoresByBrandId(this.form.brandId);
-    if ((!this.stores || !this.stores.length) && brand) {
-      this.stores = brand.stores || [];
-    }
-    console.debug('onBrandChange -> brandId, stores count', this.form.brandId, this.stores.length);
-  }
-
-  filterStoresByBrandId(brandId: any) {
-    if (!brandId) { this.stores = []; return; }
-
-    const filtered = (this.allStores || []).filter((s:any) => {
-      if (!s) return false;
-      if (s.brand && typeof s.brand === 'object') return s.brand.id == brandId;
-      return s.brand == brandId;
     });
-    this.stores = filtered;
-  }
 
-  onFilesSelected(e: Event) {
-    const input = e.target as HTMLInputElement;
-    const files = Array.from(input.files || []) as File[];
-    if (!this.form.images) this.form.images = [];
+    this.svc.getStores().subscribe({
+      next: (s: any[]) => {
+        this.allStores = s || [];
+        console.debug('getStores ->', this.allStores);
+        this.onBrandChange();
+      },
+      error: (err) => {
+        console.error('getStores error', err);
+        this.allStores = [];
+      }
+    });
 
-    const readers = files.map(f => new Promise<string>((res, rej) => {
-      const r = new FileReader();
-      r.onload = () => res(String(r.result));
-      r.onerror = e => rej(e);
-      r.readAsDataURL(f);
-    }));
-    Promise.all(readers).then(strs => {
-      this.form.images = [...this.form.images, ...strs];
-    }).catch(err => console.debug('failed to read files', err));
-    input.value = '';
-  }
-
-  removeImageAt(index: number) {
-    this.form.images = (this.form.images || []).filter((_: any, i: number) => i !== index);
-  }
-
-  isString(val: any) { return typeof val === 'string'; }
-
-  getObjectURL(file: any) { 
-    if (!file) return '';
-    if (typeof file === 'string') return file; 
-    try { return URL.createObjectURL(file); } catch { return ''; }
-  }
-
-  triggerFileDialog() {
-    try { this.fileInput.nativeElement.click(); } catch { /* fallback */ }
-  }
-
-
-  onSubmit(carForm: NgForm) {
-
-    try { Object.values(carForm.controls || {}).forEach((c:any) => c.markAsTouched && c.markAsTouched()); } catch {}
-
-    this.missingFields = [];
-    this.message = null;
-
-    const requiredChecks: { key: string; label: string }[] = [
-      { key: 'brandId', label: 'Marca' },
-      { key: 'storeId', label: 'Loja' },
-      { key: 'model', label: 'Modelo' },
-      { key: 'version', label: 'Versão' },
-      { key: 'year', label: 'Ano' },
-      { key: 'mileage', label: 'Quilometragem' },
-      { key: 'price', label: 'Valor' }
-    ];
-
-    for (const c of requiredChecks) {
-      const val = this.form[c.key];
-      const empty = val === null || val === undefined || String(val).trim() === '';
-      if (empty) this.missingFields.push(c.label);
+    if (this.id) {
+      const idNum = Number(this.id);
+      if (!Number.isNaN(idNum) && this.svc.getCar) {
+        this.svc.getCar(idNum).subscribe({
+          next: (c: any) => {
+            this.form = {
+              brandId: c.store?.brand?.id ?? null,
+              storeId: c.storeId ?? null,
+              model: c.model ?? '',
+              version: c.version ?? '',
+              year: c.year ?? '',
+              mileage: c.mileage ?? null,
+              price: c.price ?? null,
+              description: c.description ?? '',
+              images: Array.isArray(c.images) ? c.images : (c.images ? JSON.parse(c.images) : [])
+            };
+            console.debug('loaded car for edit ->', this.form);
+            this.onBrandChange();
+          },
+          error: (err) => {
+            console.error('getCar error', err);
+          }
+        });
+      }
     }
+  }
 
-    if (this.missingFields.length) {
-      this.message = `Preencha os campos obrigatórios: ${this.missingFields.join(', ')}`;
-    
-      setTimeout(() => { this.message = null; this.missingFields = []; }, 5000);
+  // aceita opcionalmente o evento vindo de ngModelChange
+  onBrandChange(eventValue?: any) {
+    // log claro e imediato para identificar disparo
+    console.debug('onBrandChange fired', { eventValue, selectedBrand: this.form.brandId });
+
+    const bId = this.form.brandId !== null && this.form.brandId !== '' ? Number(this.form.brandId) : null;
+    console.debug('computed bId=', bId, 'allStores.length=', this.allStores?.length);
+
+    if (!this.allStores || this.allStores.length === 0) {
+      this.stores = [];
+      console.debug('allStores vazio — stores vazias');
       return;
     }
 
-   
-    this.submit();
+    this.stores = bId ? (this.allStores || []).filter(s => Number(s.brandId) === bId) : [];
+    console.debug('filtered stores ->', this.stores);
+
+    if (!this.stores.some(s => s.id === Number(this.form.storeId))) {
+      this.form.storeId = null;
+    }
   }
 
-  submit() {
-    this.loading = true;
-    const payload = { ...this.form };
-    if (this.id) {
-      this.svc.updateCar(Number(this.id), payload).subscribe(()=> {
-        this.message = 'Edição realizada com sucesso !!'; this.onSaved.emit(); this.onMessage.emit({ type: 'success', text: 'Edição realizada com sucesso' }); setTimeout(()=> this.onClose.emit(),800)
-      }, (err:any)=> {
-        const text = err?.error?.message || err?.message || 'Falha';
-        this.message = text; this.onMessage.emit({ type: 'error', text }); this.loading = false;
-      })
-    } else {
-      this.svc.createCar(payload).subscribe(()=> {
-        this.message='Cadastro concluído com sucesso !!'; this.onSaved.emit(); this.onMessage.emit({ type: 'success', text: 'Cadastro concluído' }); setTimeout(()=> this.onClose.emit(),800)
-      }, (err:any)=> {
-        const text = err?.error?.message || err?.message || 'Falha';
-        this.message = text; this.onMessage.emit({ type: 'error', text }); this.loading = false;
-      })
+  onSubmit(formDirective: NgForm) {
+    const payload = {
+      ...this.form,
+      brandId: this.form.brandId !== null && this.form.brandId !== '' ? Number(this.form.brandId) : null,
+      storeId: this.form.storeId !== null && this.form.storeId !== '' ? Number(this.form.storeId) : null,
+      mileage: this.form.mileage !== null && this.form.mileage !== '' ? Number(this.form.mileage) : null,
+      price: this.form.price !== null && this.form.price !== '' ? Number(this.form.price) : null,
+      images: (this.form.images || []).map((i: any) => (typeof i === 'string' ? i : (i.name || i)))
+    };
+
+    console.debug('Frontend brands:', this.brands);
+    console.debug('Frontend allStores:', this.allStores);
+    console.debug('Car submit payload:', payload);
+
+    const brandExists = this.brands?.some(b => Number(b.id) === Number(payload.brandId));
+    if (!brandExists) {
+      this.svc.getBrands().subscribe({
+        next: (b: any[]) => {
+          this.brands = b;
+          const existsNow = this.brands?.some(bb => Number(bb.id) === Number(payload.brandId));
+          if (!existsNow) {
+            this.message = `Marca inválida (recebido="${payload.brandId}"). Marcas disponíveis: ${this.brands?.map(x => x.id+':'+x.name).join(', ') || 'nenhuma'}`;
+            this.onMessage.emit({ type: 'error', text: this.message });
+            return;
+          } else {
+            this.sendPayload(payload);
+          }
+        },
+        error: () => {
+          this.message = 'Falha ao validar marcas';
+          this.onMessage.emit({ type: 'error', text: this.message });
+        }
+      });
+      return;
     }
+
+    const storeOk = this.allStores?.some(s => Number(s.id) === Number(payload.storeId) && Number(s.brandId) === Number(payload.brandId));
+    if (!storeOk) {
+      this.message = 'Loja inválida para a marca selecionada.';
+      this.onMessage.emit({ type: 'error', text: this.message });
+      return;
+    }
+
+    this.sendPayload(payload);
+  }
+
+  private sendPayload(payload: any) {
+    this.loading = true;
+    const obs = this.id ? this.svc.updateCar(Number(this.id), payload) : this.svc.createCar(payload);
+    obs.subscribe({
+      next: () => {
+        this.loading = false;
+        this.onSaved.emit();
+        this.onMessage.emit({ type: 'success', text: this.id ? 'Edição realizada com sucesso' : 'Cadastro concluído' });
+        setTimeout(() => this.onClose.emit(), 400);
+      },
+      error: (err: any) => {
+        this.loading = false;
+        this.message = err?.error?.message || err?.message || 'Erro ao salvar';
+        this.onMessage.emit({ type: 'error', text: this.message });
+        console.error(err);
+      }
+    });
+  }
+
+  // demais métodos (triggerFileDialog, onFilesSelected, getObjectURL, removeImageAt, remove, isString)
+  triggerFileDialog() {
+    if (this.fileInput && this.fileInput.nativeElement) {
+      this.fileInput.nativeElement.click();
+    }
+  }
+
+  onFilesSelected($event: Event) {
+    const input = $event.target as HTMLInputElement;
+    if (!input || !input.files) return;
+    Array.from(input.files).forEach(f => {
+      this.form.images = this.form.images || [];
+      this.form.images.push(f);
+    });
+    if (input) input.value = '';
+  }
+
+  getObjectURL(item: any) {
+    if (!item) return '';
+    if (typeof item === 'string') return item;
+    try { return URL.createObjectURL(item); } catch { return ''; }
+  }
+
+  removeImageAt(index: number) {
+    if (!this.form.images || !this.form.images[index]) return;
+    const it = this.form.images[index];
+    if (it && typeof it !== 'string') {
+      try { URL.revokeObjectURL(this.getObjectURL(it)); } catch {}
+    }
+    this.form.images.splice(index, 1);
   }
 
   remove() {
     if (!this.id) return;
-    if (!confirm('Confirma exclusão?')) return;
-    this.svc.deleteCar(Number(this.id)).subscribe(()=> { this.message='Exclusão realizada'; this.onSaved.emit(); this.onMessage.emit({ type: 'success', text: 'Exclusão realizada com sucesso !! ' }); setTimeout(()=> this.onClose.emit(),800) }, (err:any)=> { const text = err?.error?.message || err?.message || 'Falha'; this.onMessage.emit({ type: 'error', text }); })
+    const idNum = Number(this.id);
+    if (Number.isNaN(idNum)) return;
+    this.loading = true;
+    if (!this.svc.deleteCar) {
+      this.loading = false;
+      this.message = 'Operação de exclusão não disponível';
+      return;
+    }
+    this.svc.deleteCar(idNum).subscribe({
+      next: () => {
+        this.loading = false;
+        this.onMessage.emit({ type: 'success', text: 'Registro excluído' });
+        this.onSaved.emit();
+        this.onClose.emit();
+      },
+      error: (err: any) => {
+        this.loading = false;
+        this.message = err?.error?.message || err?.message || 'Erro ao excluir';
+        this.onMessage.emit({ type: 'error', text: this.message });
+        console.error(err);
+      }
+    });
+  }
+
+  isString(v: any) {
+    return typeof v === 'string';
   }
 }

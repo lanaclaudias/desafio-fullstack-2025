@@ -72,6 +72,6 @@
   <app-car-form *ngIf="showForm" [id]="editId" 
     (onClose)="showForm=false" 
     (onSaved)="onSaved()" 
-    (onMessage)="onMessage($event)">
+    (onMessage)="onMessage($any($event))">
   </app-car-form>
 </div>

@@ -1,34 +1,26 @@
 
-<div class="modal-overlay">
-  <div class="card">
-
-    <div *ngIf="missingFields?.length" class="error-banner" style="margin-bottom:12px;padding:10px;border-radius:8px;background:#ffecec;color:#a40000;">
-      Preencha os campos obrigatórios: {{ missingFields.join(', ') }}
-    </div>
-
-
-    <div *ngIf="message" class="result-modal" style="margin-bottom:12px;padding:10px;border-radius:8px;background:#f0f6ff;color:#073763;">
-      {{ message }}
-    </div>
-
+<div class="card">
     <form #carForm="ngForm" (ngSubmit)="onSubmit(carForm)" class="form-column" novalidate>
       <div class="field">
         <label>Marca</label>
-        <select [(ngModel)]="form.brandId" name="brandId" (change)="onBrandChange()" required>
-          <option value="">Selecione a marca</option>
-          <option *ngFor="let b of brands" [value]="b.id">{{ b.name }}</option>
+        <!-- adicionados ngModelChange e change para garantir disparo -->
+        <select [(ngModel)]="form.brandId"
+                name="brandId"
+                (change)="onBrandChange()"
+                required>
+          <option [ngValue]="null">Selecione a marca</option>
+          <option *ngFor="let b of brands" [ngValue]="b.id">{{ b.name }}</option>
         </select>
       </div>
 
       <div class="field">
         <label>Loja</label>
         <select [(ngModel)]="form.storeId" name="storeId" required>
-          <option value="">Selecione a loja</option>
-          <option *ngFor="let s of stores" [value]="s.id">{{ s.name }}</option>
+          <option [ngValue]="null">Selecione a loja</option>
+          <option *ngFor="let s of stores" [ngValue]="s.id">{{ s.name }}</option>
         </select>
         <small *ngIf="(!stores || stores.length === 0)" class="help">Nenhuma loja disponível para a marca selecionada.</small>
       </div>
-
       <div class="field">
         <label>Modelo</label>
         <input [(ngModel)]="form.model" name="model" placeholder="Informe o modelo" required />
@@ -64,7 +56,7 @@
         <div class="upload-area" (drop)="$event.preventDefault()" (dragover)="$event.preventDefault()">
           <div class="thumbs">
             <div *ngFor="let it of (form.images || []); let i = index" class="thumb">
-              <img [src]="isString(it) ? it : getObjectURL(it)" [alt]="'img-'+i" />
+              <img [src]="typeof it === 'string' ? it : getObjectURL(it)" [alt]="'img-'+i" />
               <button type="button" class="remove" (click)="removeImageAt(i)">✕</button>
             </div>
             <div class="thumb add" (click)="triggerFileDialog()">
@@ -80,14 +72,11 @@
           <button *ngIf="id" type="button" class="btn danger" (click)="remove()" [disabled]="loading">Excluir</button>
         </div>
 
-        <div style="display:flex;gap:12px;">
-          <button type="button" class="btn cancel" (click)="onClose.emit()" [disabled]="loading">Cancelar</button>
-          <button class="btn save" type="submit" [disabled]="loading">
-            <span *ngIf="loading">Salvando...</span>
-            <span *ngIf="!loading">Salvar</span>
-          </button>
-        </div>
+        <div class="footer-actions">
+        <button type="button" class="btn cancel" (click)="onClose.emit()" [disabled]="loading">Cancelar</button>
+        <button class="btn save" type="submit" [disabled]="loading">Salvar</button>
+      </div>
       </div>
     </form>
   </div>
-</div>
+
