@@ -1,6 +1,5 @@
 # Desafio Fullstack 2025
 
-
 Olá queremos te desafiar a participar do nosso time de Inovação do Grupo Parvi.\
 Para isso queremos saber um pouco mais sobre você e para isso temos um pequeno desafio onde,\
 você pode construir uma aplicação simples e mostrar seu conhecimento e no final receberá um feedback
@@ -77,4 +76,4 @@ O mais importante nesse desafio é que você entregue ele a tempo, mesmo que voc
 
 Boa sorte no desafio!\
 Estamos animado com sua participação!\
-Ficamos no aguardo!\
+Ficamos no aguardo!\/
