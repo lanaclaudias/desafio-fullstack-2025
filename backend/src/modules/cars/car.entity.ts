@@ -1,35 +1,38 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Store } from '../stores/store.entity';
 
-@Entity()
+@Entity('cars')
 export class Car {
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number;
 
   @Column()
-  model: string;
+    model: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  version?: string | null;
+  @Column()
+    version: string;
 
-  @Column('int')
-  year: number;
 
-  @Column('int', { nullable: true })
-  mileage?: number | null;
+  @Column()
+    year: string;
 
-  @Column('decimal', { nullable: true, precision: 12, scale: 2 })
-  price?: number | null;
+  @Column({ type: 'int', nullable: true })
+    mileage?: number | null;
 
-  @Column({ type: 'text', nullable: true })
-  description?: string | null;
+  @Column({ type: 'float', nullable: true })
+    price?: number | null;
 
   @Column({ type: 'text', nullable: true })
-  images?: string | null; // JSON array of image URLs/base64
+    description?: string | null;
 
-  @Column({ type: 'varchar', nullable: true })
-  color?: string | null;
+  // pode ser JSON string ou caminho
+  @Column({ type: 'text', nullable: true })
+    images?: string | null;
 
-  @ManyToOne(() => Store, (store) => store.cars)
-  store: Store;
+  @Column()
+    storeId: number;
+
+  @ManyToOne(() => Store, (s) => s.cars, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'storeId' })
+    store: Store;
 }

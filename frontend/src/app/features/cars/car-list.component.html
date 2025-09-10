@@ -68,10 +68,13 @@
       </div>
     </div>
   </main>
-
-  <app-car-form *ngIf="showForm" [id]="editId" 
-    (onClose)="showForm=false" 
-    (onSaved)="onSaved()" 
-    (onMessage)="onMessage($any($event))">
-  </app-car-form>
+  <div class="modal-overlay" *ngIf="showForm" (click)="closeForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+    <app-car-form
+        [id]="editId"
+        (onClose)="closeForm()"
+        (onSaved)="onSaved()"
+        (onMessage)="onMessage($any($event))">
+      </app-car-form>
 </div>
+  </div>

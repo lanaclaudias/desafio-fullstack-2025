@@ -11,12 +11,15 @@ import { CarFormComponent } from './car-form.component';
   styleUrls: ['./car-list.component.css']
 })
 export class CarListComponent implements OnInit {
+
   cars: any[] = [];
   showForm = false;
   editId: any = null;
   message: {type:'success'|'error', text:string} | null = null;
-
   visibleIdx: Record<string, number> = {};
+
+  private API_BASE = 'http://localhost:3000';
+ PLACEHOLDER_IMG = 'https://via.placeholder.com/640x360?text=Sem+imagem';
 
 
   menuOpen = false;
@@ -28,7 +31,10 @@ export class CarListComponent implements OnInit {
   }
 
   load() {
-    this.svc.getCars().subscribe(r => this.cars = r.data || r);
+    this.svc.getCars().subscribe((r: any) => {
+     
+      this.cars = Array.isArray(r) ? r : (r && r.data ? r.data : r);
+    });
     setTimeout(() => {
       const map: any = {}; 
       this.cars.forEach(c => map[c.id] = 0); 
@@ -40,7 +46,10 @@ export class CarListComponent implements OnInit {
     this.editId = id || null; 
     this.showForm = true; 
   }
-
+closeForm() {
+    this.showForm = false;
+    this.editId = null;
+  }
   onSaved() { 
     this.showForm = false; 
     this.load(); 
@@ -59,24 +68,47 @@ export class CarListComponent implements OnInit {
     if (next >= len) next = 0;
     this.visibleIdx = { ...this.visibleIdx, [carId]: next };
   }
+confirmDelete(carId: any) {
+    const ok = confirm('Tem certeza que deseja excluir este veículo? Esta ação não pode ser desfeita.');
+    if (!ok) return;
 
-  getImages(car: any) {
-    if (!car) return ['/placeholder.jpg'];
-    const imgs = car.images;
-    if (!imgs) return ['/placeholder.jpg'];
-    try {
-      if (typeof imgs === 'string') {
-        const parsed = JSON.parse(imgs);
-        if (Array.isArray(parsed) && parsed.length) return parsed;
+    this.svc.deleteCar(Number(carId)).subscribe({
+      next: () => {
+        this.onMessage({ type: 'success', text: 'Veículo excluído com sucesso.' });
+        this.load();
+      },
+      error: (err) => {
+        const text = err?.error?.message ?? err?.message ?? 'Erro ao excluir veículo.';
+        this.onMessage({ type: 'error', text: String(text) });
       }
-      if (Array.isArray(imgs) && imgs.length) return imgs;
-    } catch (e) {
-      if (typeof imgs === 'string' && imgs.length) return [imgs];
+    });
+  }
+  getImages(car: any): string[] {
+    try {
+      let raw = car?.images ?? [];
+      if (typeof raw === 'string') {
+        const s = raw.trim();
+        raw = s.startsWith('[') ? JSON.parse(s) : (s ? [s] : []);
+      }
+      const arr = (Array.isArray(raw) ? raw : [])
+        .map((v: any) => String(v))
+        .filter(Boolean)
+        .map((s) => this.normalizeUrl(s));
+      return arr.length ? arr : [this.PLACEHOLDER_IMG];
+    } catch {
+      return [this.PLACEHOLDER_IMG];
     }
-    return ['/placeholder.jpg'];
   }
 
-
+ private normalizeUrl(s: string): string {
+  if (/^https?:\/\//i.test(s) || s.startsWith('blob:') || s.startsWith('data:')) return s;
+  if (s.startsWith('/uploads/')) return `${this.API_BASE}${s}`;
+  if (!s.startsWith('/')) return `${this.API_BASE}/uploads/${encodeURIComponent(s)}`;
+  return s;
+}
+onImgError(ev: Event) {
+    (ev.target as HTMLImageElement).src = this.PLACEHOLDER_IMG;
+}
   toggleMenu() {
     this.menuOpen = !this.menuOpen;
   }

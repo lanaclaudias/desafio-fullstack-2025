@@ -1,41 +1,30 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
-const data = [
-  { name: 'BYD', stores: ['BYD Recife', 'BYD Salvador'] },
-  { name: 'Hyundai', stores: ['Pateo Afogados', 'Pateo São Luis'] },
-  { name: 'Toyota', stores: ['Toyolex Ibiribeira', 'Toyolex Natal'] },
-  { name: 'Volkswagen', stores: ['Bremen Recife', 'Bremen João Pessoa'] },
-];
-
 async function main() {
-  for (const b of data) {
-    const brand = await prisma.brand.upsert({
-      where: { name: b.name },
-      update: {},
-      create: { name: b.name },
-    });
+  await prisma.car.deleteMany().catch(() => {});
+  await prisma.store.deleteMany().catch(() => {});
+  await prisma.brand.deleteMany().catch(() => {});
 
-    for (const sname of b.stores) {
-      const existing = await prisma.store.findFirst({
-        where: { name: sname, brandId: brand.id },
-      });
-      if (!existing) {
-        await prisma.store.create({
-          data: { name: sname, brandId: brand.id },
-        });
-      }
-    }
-  }
+  const byd = await prisma.brand.create({ data: { name: 'BYD' } });
+  const hyu = await prisma.brand.create({ data: { name: 'Hyundai' } });
+  const toy = await prisma.brand.create({ data: { name: 'Toyota' } });
+  const vw  = await prisma.brand.create({ data: { name: 'Volkswagen' } });
 
-  console.log('Seed concluído');
+  await prisma.store.createMany({
+    data: [
+      { name: 'BYD Recife', brandId: byd.id },
+      { name: 'BYD Salvador', brandId: byd.id },
+      { name: 'Pateo Afogados', brandId: hyu.id },
+      { name: 'Pateo São Luis', brandId: hyu.id },
+      { name: 'Toyolex Ibiribeira', brandId: toy.id },
+      { name: 'Toyolex Natal', brandId: toy.id },
+      { name: 'Bremen Recife', brandId: vw.id },
+      { name: 'Bremen João Pessoa', brandId: vw.id },
+    ],
+  });
+
+ 
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().finally(() => prisma.$disconnect());

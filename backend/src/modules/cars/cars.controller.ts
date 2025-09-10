@@ -1,32 +1,35 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put } from '@nestjs/common';
 import { CarsService } from './cars.service';
+import { CreateCarDto } from '../../common/dto/create-car.dto';
+import { UpdateCarDto } from '../../common/dto/update-car.dto';
 
 @Controller('api/cars')
 export class CarsController {
-  constructor(private readonly service: CarsService) {}
+  constructor(private readonly carsService: CarsService) {}
 
   @Get()
   findAll() {
-    return this.service.findAll();
+    return this.carsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.service.findOne(Number(id));
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.carsService.findOne(id);
   }
 
   @Post()
-  create(@Body() payload: any) {
-    return this.service.create(payload);
+  create(@Body() dto: CreateCarDto) {
+    return this.carsService.create(dto);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() payload: any) {
-    return this.service.update(Number(id), payload);
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCarDto) {
+    return this.carsService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.service.remove(Number(id));
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.carsService.remove(id);
   }
 }

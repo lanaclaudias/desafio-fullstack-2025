@@ -5,14 +5,14 @@ import { Car } from '../cars/car.entity';
 @Entity()
 export class Store {
   @PrimaryGeneratedColumn()
-  id: number;
+    id: number;
 
   @Column()
-  name: string;
+    name: string;
 
   @ManyToOne(() => Brand, (brand) => brand.stores)
-  brand: Brand;
+    brand: Brand;
 
   @OneToMany(() => Car, (car) => car.store)
-  cars: Car[];
+    cars: Car[];
 }

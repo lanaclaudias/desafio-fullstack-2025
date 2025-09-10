@@ -17,19 +17,21 @@ model Store {
   id      Int    @id @default(autoincrement())
   name    String
   brandId Int
-  cars    Car[]
   brand   Brand  @relation(fields: [brandId], references: [id])
+  cars    Car[]
 }
 
 model Car {
-  id          Int     @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   model       String
   version     String
   year        String
-  mileage     Int
-  price       Float
+  mileage     Int?
+  price       Float?
   description String?
   images      String?
   storeId     Int
-  store       Store   @relation(fields: [storeId], references: [id])
+  store       Store    @relation(fields: [storeId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

@@ -155,6 +155,21 @@ input:focus, select:focus, textarea:focus {
   opacity: 0.9;
 }
 
+.alert {
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 8px 0 12px;
+  font-size: 14px;
+}
+.alert.error { background: #fdecea; color: #b3261e; border: 1px solid #d41f19; }
+.alert.success { background: #ecfdf3; color: #05603a; border: 1px solid #06532a; }
+
+.field-error {
+  color: #b3261e;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }
   to   { opacity: 1; transform: translateY(0); }

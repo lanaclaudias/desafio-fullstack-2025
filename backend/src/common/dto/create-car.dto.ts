@@ -1,35 +1,56 @@
-import { IsNotEmpty, IsOptional, Matches, IsNumberString, IsArray, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  IsInt,
+  Min,
+  IsArray,
+  ArrayNotEmpty,
+  Matches,
+} from 'class-validator';
 
 export class CreateCarDto {
-  @IsNotEmpty()
-  model: string;
-
-  @IsNotEmpty()
-  version: string;
-
-  @IsNotEmpty()
-  @Matches(/^\d{4}(\/\d{4})?$/, { message: 'Ano inválido. Use 2018 ou 2018/2019' })
-  year: string;
-
-  @IsNotEmpty()
-  @IsNumberString()
-  mileage: string;
-
-  @IsNotEmpty()
-  @IsNumberString()
-  price: string;
+  @IsString()
+  @IsNotEmpty({ message: 'Modelo é obrigatório.' })
+    model: string;
 
   @IsOptional()
-  description?: string;
+  @IsString()
+    version?: string;
 
-  @IsNotEmpty()
-  brandId: number;
+    @IsOptional()
+  @IsString()
+      description?: string;
+  
+  @IsString()
+  @Matches(/^\d{4}(\/\d{4})?$/, { message: 'Ano inválido. Use 2018 ou 2018/2019' })
+    year: string;
 
-  @IsNotEmpty()
-  storeId: number;
+  @IsOptional()
+  @Transform(({ value }) => (value === '' || value == null ? undefined : Number(value)))
+  @IsNumber({}, { message: 'mileage deve ser um número' })
+    mileage?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => (value === '' || value == null ? undefined : Number(value)))
+  @IsNumber({}, { message: 'price deve ser um número' })
+    price?: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt({ message: 'brandId inválido' })
+  @Min(1, { message: 'brandId inválido' })
+    brandId: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsInt({ message: 'storeId inválido' })
+  @Min(1, { message: 'storeId inválido' })
+    storeId: number;
 
   @IsOptional()
   @IsArray()
+  @ArrayNotEmpty()
   @IsString({ each: true })
-  images?: string[];
+    images?: string[];
 }

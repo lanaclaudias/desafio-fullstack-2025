@@ -1,82 +1,86 @@
-
 <div class="card">
-    <form #carForm="ngForm" (ngSubmit)="onSubmit(carForm)" class="form-column" novalidate>
-      <div class="field">
-        <label>Marca</label>
-        <!-- adicionados ngModelChange e change para garantir disparo -->
-        <select [(ngModel)]="form.brandId"
-                name="brandId"
-                (change)="onBrandChange()"
-                required>
-          <option [ngValue]="null">Selecione a marca</option>
-          <option *ngFor="let b of brands" [ngValue]="b.id">{{ b.name }}</option>
-        </select>
-      </div>
+  <div *ngIf="errorText" class="alert error">{{ errorText }}</div>
+  <div *ngIf="successText" class="alert success">{{ successText }}</div>
 
-      <div class="field">
-        <label>Loja</label>
-        <select [(ngModel)]="form.storeId" name="storeId" required>
-          <option [ngValue]="null">Selecione a loja</option>
-          <option *ngFor="let s of stores" [ngValue]="s.id">{{ s.name }}</option>
-        </select>
-        <small *ngIf="(!stores || stores.length === 0)" class="help">Nenhuma loja disponível para a marca selecionada.</small>
-      </div>
-      <div class="field">
-        <label>Modelo</label>
-        <input [(ngModel)]="form.model" name="model" placeholder="Informe o modelo" required />
-      </div>
-
-      <div class="field">
-        <label>Versão</label>
-        <input [(ngModel)]="form.version" name="version" placeholder="Informe a versão" required />
-      </div>
+  <form #carForm="ngForm" (ngSubmit)="onSubmit(carForm)" class="form-column" novalidate>
+    <div class="field">
+      <label>Marca</label>
+      <select [(ngModel)]="form.brandId"
+              name="brandId"
+              (ngModelChange)="onBrandChange($event)"
+              (change)="onBrandChange()"
+              required>
+        <option [ngValue]="null">Selecione a marca</option>
+        <option *ngFor="let b of brands" [ngValue]="b.id">{{ b.name }}</option>
+      </select>
+    </div>
 
     <div class="field">
-        <label>Ano Fabricação/Modelo</label>
-        <input type="text" [(ngModel)]="form.year" name="year" placeholder="Ex: 2018 ou 2018/2019" required />
-      </div>
+      <label>Loja</label>
+      <select [(ngModel)]="form.storeId" name="storeId" required>
+        <option [ngValue]="null">Selecione a loja</option>
+        <option *ngFor="let s of stores" [ngValue]="s.id">{{ s.name }}</option>
+      </select>
+      <small *ngIf="(!stores || stores.length === 0)" class="help">Nenhuma loja disponível para a marca selecionada.</small>
+    </div>
 
-      <div class="field">
-        <label>Quilometragem</label>
-        <input type="number" [(ngModel)]="form.mileage" name="mileage" placeholder="Informe a quilometragem" required />
-      </div>
+    <div class="field">
+      <label>Modelo</label>
+      <input [(ngModel)]="form.model" name="model" placeholder="Preencha o campo modelo" required />
+    </div>
 
-      <div class="field">
-        <label>Valor</label>
-        <input type="number" [(ngModel)]="form.price" name="price" step="0.01" placeholder="Informe o valor" required />
-      </div>
+    <div class="field">
+      <label>Versão</label>
+      <input [(ngModel)]="form.version" name="version" placeholder="Preencha o campo versão" required />
+    </div>
 
-      <div class="field">
-        <label>Descrição</label>
-        <textarea [(ngModel)]="form.description" name="description" rows="3" placeholder="Digite a descrição do veículo"></textarea>
-      </div>
+    <div class="field">
+      <label>Ano Fabricação/Modelo</label>
+      <input type="text" [(ngModel)]="form.year" name="year" placeholder="Ex: 2018 ou 2018/2019" required />
+    </div>
 
-      <div class="field">
-        <label>Upload imagens</label>
-        <div class="upload-area" (drop)="$event.preventDefault()" (dragover)="$event.preventDefault()">
-          <div class="thumbs">
-            <div *ngFor="let it of (form.images || []); let i = index" class="thumb">
-              <img [src]="typeof it === 'string' ? it : getObjectURL(it)" [alt]="'img-'+i" />
-              <button type="button" class="remove" (click)="removeImageAt(i)">✕</button>
-            </div>
-            <div class="thumb add" (click)="triggerFileDialog()">
-              <div class="plus">+</div>
-            </div>
+    <div class="field">
+      <label>Quilometragem</label>
+      <input type="number" [(ngModel)]="form.mileage" name="mileage" placeholder="Preencha o campo quilometragem" required />
+    </div>
+
+    <div class="field">
+      <label>Valor</label>
+      <input type="number" [(ngModel)]="form.price" name="price" step="0.01" placeholder="Preencha o campo valor" required />
+    </div>
+
+    <div class="field">
+      <label>Descrição</label>
+      <textarea [(ngModel)]="form.description" name="description" rows="3" placeholder="Digite a descrição do veículo"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Imagens</label>
+      <div class="upload-area" (drop)="$event.preventDefault()" (dragover)="$event.preventDefault()">
+        <div class="thumbs">
+          <div *ngFor="let u of previewUrls; let i = index; trackBy: trackByIndex" class="thumb">
+            <img [src]="u" [alt]="'img-'+i" />
+            <button type="button" class="remove" (click)="removeImageAt(i)">✕</button>
           </div>
-          <input #fileInput type="file" multiple style="display:none" (change)="onFilesSelected($event)" />
+          <div class="thumb add" (click)="triggerFileDialog()">
+            <div class="plus">+</div>
+          </div>
         </div>
+        <input #fileInput type="file" multiple style="display:none" (change)="onFilesSelected($event)" />
+      </div>
+    </div>
+
+    <div class="footer-actions" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
+      <div>
+        <button *ngIf="id" type="button" class="btn danger" (click)="remove()" [disabled]="loading">Excluir</button>
       </div>
 
-      <div class="footer-actions" style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
-        <div>
-          <button *ngIf="id" type="button" class="btn danger" (click)="remove()" [disabled]="loading">Excluir</button>
-        </div>
-
-        <div class="footer-actions">
+      <div class="footer-actions">
         <button type="button" class="btn cancel" (click)="onClose.emit()" [disabled]="loading">Cancelar</button>
         <button class="btn save" type="submit" [disabled]="loading">Salvar</button>
       </div>
-      </div>
-    </form>
-  </div>
+    </div>
 
+   
+  </form>
+</div>
