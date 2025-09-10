@@ -25,7 +25,7 @@ export class Car {
   @Column({ type: 'text', nullable: true })
     description?: string | null;
 
-  // pode ser JSON string ou caminho
+
   @Column({ type: 'text', nullable: true })
     images?: string | null;
 
